@@ -5,5 +5,7 @@ package bgu.spl.mics.application.objects;
  * Used by the LiDAR system to store and process point cloud data for tracked objects.
  */
 public class StampedCloudPoints {
-    // TODO: Define fields and methods.
+    String id;
+    int time;
+    // ???
 }
