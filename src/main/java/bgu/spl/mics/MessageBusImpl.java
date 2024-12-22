@@ -57,7 +57,7 @@ public class MessageBusImpl implements MessageBus {
 
         for (MicroService m : snapshot) {
             ConcurrentLinkedQueue<Message> queue = msgQueues.get(m);
-            if (queue != null){
+            if (queue != null) {
                 queue.add(b);
                 queue.notifyAll();
             }
@@ -69,12 +69,9 @@ public class MessageBusImpl implements MessageBus {
     public <T> Future<T> sendEvent(Event<T> e) {
 
         // finding the subscriber list for this event type
-        ConcurrentLinkedQueue<MicroService> subs;
-        synchronized (eventSubs) {
-            subs = eventSubs.get(e.getClass());
-            if (subs == null || subs.isEmpty())
-                return null;
-        }
+        ConcurrentLinkedQueue<MicroService> subs = eventSubs.get(e.getClass());
+        if (subs == null || subs.isEmpty())
+            return null;
 
         // finding the target microservice
         MicroService target;
@@ -90,14 +87,13 @@ public class MessageBusImpl implements MessageBus {
         ConcurrentLinkedQueue<Message> queue;
         synchronized (msgQueues) {
             queue = msgQueues.get(target);
-            if (queue != null) { // make sure the microservice is still registered
-                queue.add(e);
-                queue.notifyAll();
-                eventFutures.put(e, future);
-                return future;
-            }
+            if (queue == null)
+                return null;
+            queue.add(e);
+            queue.notifyAll();
+            eventFutures.put(e, future);
+            return future;
         }
-        return null;
     }
 
     @Override
