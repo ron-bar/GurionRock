@@ -3,6 +3,7 @@ package bgu.spl.mics;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * The {@link MessageBusImpl class is the implementation of the MessageBus interface.
@@ -11,7 +12,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class MessageBusImpl implements MessageBus {
 
-    private final ConcurrentHashMap<MicroService, ConcurrentLinkedQueue<Message>> msgQueues;
+    private final ConcurrentHashMap<MicroService, LinkedBlockingQueue<Message>> msgQueues;
     private final ConcurrentHashMap<Class<? extends Event<?>>, ConcurrentLinkedQueue<MicroService>> eventSubs;
     private final ConcurrentHashMap<Class<? extends Broadcast>, ConcurrentLinkedQueue<MicroService>> broadcastSubs;
     private final ConcurrentHashMap<Event<?>, Future<?>> eventFutures;
@@ -56,10 +57,9 @@ public class MessageBusImpl implements MessageBus {
         }
 
         for (MicroService m : snapshot) {
-            ConcurrentLinkedQueue<Message> queue = msgQueues.get(m);
+            LinkedBlockingQueue<Message> queue = msgQueues.get(m);
             if (queue != null) {
                 queue.add(b);
-                queue.notifyAll();
             }
         }
     }
@@ -67,7 +67,6 @@ public class MessageBusImpl implements MessageBus {
 
     @Override
     public <T> Future<T> sendEvent(Event<T> e) {
-
         // finding the subscriber list for this event type
         ConcurrentLinkedQueue<MicroService> subs = eventSubs.get(e.getClass());
         if (subs == null || subs.isEmpty())
@@ -80,32 +79,28 @@ public class MessageBusImpl implements MessageBus {
             if (target != null)
                 subs.add(target); // re-add it to the back of the queue
         }
-
         if (target == null) return null;
 
         Future<T> future = new Future<>();
-        ConcurrentLinkedQueue<Message> queue;
-        synchronized (msgQueues) {
-            queue = msgQueues.get(target);
-            if (queue == null)
-                return null;
-            queue.add(e);
-            queue.notifyAll();
-            eventFutures.put(e, future);
-            return future;
-        }
+        LinkedBlockingQueue<Message> queue = msgQueues.get(target);
+        if (queue == null)
+            return null;
+        queue.add(e);
+        eventFutures.put(e, future);
+        return future;
+
     }
 
     @Override
     public void register(MicroService m) {
-        msgQueues.putIfAbsent(m, new ConcurrentLinkedQueue<>());
+        msgQueues.putIfAbsent(m, new LinkedBlockingQueue<>());
     }
 
     @Override
     public void unregister(MicroService m) {
         msgQueues.remove(m);
 
-        // we will synchronize separately to avoid unnecessary blocking
+        // synchronize separately to avoid unnecessary blocking
         synchronized (eventSubs) {
             for (ConcurrentLinkedQueue<MicroService> subs : eventSubs.values())
                 subs.remove(m); // no need to check if it exists
@@ -118,15 +113,11 @@ public class MessageBusImpl implements MessageBus {
 
     @Override
     public Message awaitMessage(MicroService m) throws InterruptedException {
-        ConcurrentLinkedQueue<Message> queue = msgQueues.get(m);
+        LinkedBlockingQueue<Message> queue = msgQueues.get(m);
         if (queue == null)
             throw new IllegalStateException("MicroService is not registered");
 
-        synchronized (queue) {
-            while (queue.isEmpty())
-                queue.wait();
-            return queue.poll();
-        }
+        return queue.take();
     }
 
     public static MessageBusImpl getInstance() {
