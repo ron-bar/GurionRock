@@ -13,8 +13,23 @@ public class Camera {
     STATUS status;
     List<DetectedObject> detectedObjectsList;
 
-    public Camera()
+    public Camera(int id, int frequency)
     {
+        this.id=id;
+        this.frequency=frequency;
         detectedObjectsList = new ArrayList<>();
+    }
+
+    public int getId(){
+        return id;
+    }
+
+    public int getFrequency(){
+        return frequency;
+    }
+
+    public StampedDetectedObjects detect(int currentTime) {
+        //todo
+        return null;
     }
 }
