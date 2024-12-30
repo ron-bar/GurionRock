@@ -149,9 +149,8 @@ public abstract class MicroService implements Runnable {
      */
     protected final void terminate() {
         this.terminated = true;
-        sendBroadcast(new TerminatedBroadcast());
+        sendBroadcast(new TerminatedBroadcast(getName()));
         MessageBusImpl.getInstance().unregister(this);
-        Thread.currentThread().interrupt();
     }
 
     /**

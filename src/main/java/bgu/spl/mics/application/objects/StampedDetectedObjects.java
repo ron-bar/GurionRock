@@ -1,4 +1,5 @@
 package bgu.spl.mics.application.objects;
+
 import java.util.List;
 
 /**
@@ -6,24 +7,30 @@ import java.util.List;
  * Includes the time of detection and a list of detected objects.
  */
 public class StampedDetectedObjects {
-    int time;
-    List<DetectedObject> detectedObjects;
+    private final int time;
+    private final List<DetectedObject> detectedObjects;
 
-    public StampedDetectedObjects(int time, List<DetectedObject> detectedObjects)
-    {
-        this.time=time;
-        this.detectedObjects=detectedObjects;
+    public StampedDetectedObjects(int time, List<DetectedObject> detectedObjects) {
+        this.time = time;
+        this.detectedObjects = detectedObjects;
     }
 
-    public int getTime(){
+    public int getTime() {
         return time;
     }
 
-    public List<DetectedObject> getDetectedObjects(){
+    public List<DetectedObject> getDetectedObjects() {
         return detectedObjects;
     }
 
-    public boolean isEmpty(){
+    public boolean isEmpty() {
         return detectedObjects.isEmpty();
+    }
+
+    public boolean hasError() {
+        for (DetectedObject obj : detectedObjects)
+            if (obj.getId().equals("ERROR"))
+                return true;
+        return false;
     }
 }

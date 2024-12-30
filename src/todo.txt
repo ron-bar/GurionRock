@@ -1,4 +1,6 @@
 TimeService: does it need to subscribe to any messages? inner thread in initialize?
-MessageBus: check if blockingqueue is needed, check if properly synchronized
-PoseService: do getPose
+MessageBus: check if properly synchronized
 CameraService: handle future, callbacks to broadcasts
+ConfigReader: verify path works, consider removing singleton
+MicroService: remove broadcast from terminate()
+if a microservice crashed, do others send a broadcast (terminated,crashed)?

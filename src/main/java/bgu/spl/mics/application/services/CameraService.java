@@ -1,4 +1,5 @@
 package bgu.spl.mics.application.services;
+
 import bgu.spl.mics.*;
 import bgu.spl.mics.application.messages.*;
 import bgu.spl.mics.application.objects.*;
@@ -14,7 +15,7 @@ import java.util.List;
  * the system's StatisticalFolder upon sending its observations.
  */
 public class CameraService extends MicroService {
-    Camera camera;
+    private final Camera camera;
 
     /**
      * Constructor for CameraService.
@@ -34,14 +35,20 @@ public class CameraService extends MicroService {
     @Override
     protected void initialize() {
         MessageBusImpl.getInstance().register(this);
-        //subscribeBroadcast(TerminatedBroadcast.class, terminatedBroadcast -> ???);
-        //subscribeBroadcast(CrashedBroadcast.class, crashedBroadcast -> ???);
+        subscribeBroadcast(CrashedBroadcast.class, crashedBroadcast -> terminate());
+        subscribeBroadcast(TerminatedBroadcast.class, terminatedBroadcast -> {
+            if (terminatedBroadcast.getSenderName().equals("TimeService"))
+                terminate();
+        });
+
         subscribeBroadcast(TickBroadcast.class, tickBroadcast -> {
-            int currentTime = tickBroadcast.getCurrentTick();
-            if ((currentTime % camera.getFrequency()) == 0) {
-                StampedDetectedObjects detection = camera.detect(currentTime); // Perform detection
-                if (!detection.isEmpty())
-                    /*Future<Boolean> result =*/ sendEvent(new DetectObjectsEvent(detection));
+            StampedDetectedObjects detection = camera.detect(tickBroadcast.getCurrentTick());
+            if (detection != null)
+                /*Future<Boolean> result =*/ sendEvent(new DetectObjectsEvent(detection));
+            if(camera.getStatus() != STATUS.UP){
+                Broadcast b = camera.getStatus() == STATUS.DOWN ? new TerminatedBroadcast(getName()) : new CrashedBroadcast();
+                sendBroadcast(b);
+                terminate();
             }
         });
     }
