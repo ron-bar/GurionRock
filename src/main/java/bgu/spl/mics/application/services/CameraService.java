@@ -4,8 +4,8 @@ import bgu.spl.mics.*;
 import bgu.spl.mics.application.messages.*;
 import bgu.spl.mics.application.objects.*;
 
+import java.util.concurrent.CountDownLatch;
 
-import java.util.List;
 
 /**
  * CameraService is responsible for processing data from the camera and
@@ -16,15 +16,17 @@ import java.util.List;
  */
 public class CameraService extends MicroService {
     private final Camera camera;
+    private final CountDownLatch latch;
 
     /**
      * Constructor for CameraService.
      *
      * @param camera The Camera object that this service will use to detect objects.
      */
-    public CameraService(Camera camera) {
+    public CameraService(Camera camera, CountDownLatch latch) {
         super("CameraService" + camera.getId());
         this.camera = camera;
+        this.latch = latch;
     }
 
     /**
@@ -35,22 +37,32 @@ public class CameraService extends MicroService {
     @Override
     protected void initialize() {
         MessageBusImpl.getInstance().register(this);
-        subscribeBroadcast(CrashedBroadcast.class, crashedBroadcast -> terminate());
+        subscribeBroadcast(CrashedBroadcast.class, crashedBroadcast -> {
+            sendBroadcast(new TerminatedBroadcast(this.getName()));
+            terminate();
+        });
         subscribeBroadcast(TerminatedBroadcast.class, terminatedBroadcast -> {
-            if (terminatedBroadcast.getSenderName().equals("TimeService"))
+            if (terminatedBroadcast.getSenderName().equals("TimeService")) {
+                sendBroadcast(new TerminatedBroadcast(this.getName()));
                 terminate();
+            }
         });
 
         subscribeBroadcast(TickBroadcast.class, tickBroadcast -> {
-            StampedDetectedObjects detection = camera.detect(tickBroadcast.getCurrentTick());
-            if (detection != null)
-                /*Future<Boolean> result =*/ sendEvent(new DetectObjectsEvent(detection));
-            if(camera.getStatus() != STATUS.UP){
-                Broadcast b = camera.getStatus() == STATUS.DOWN ? new TerminatedBroadcast(getName()) : new CrashedBroadcast();
+            StampedDetectedObjects detection = camera.detect(tickBroadcast.getCurrentTick() - camera.getFrequency());
+            if (detection != null && camera.getStatus() != STATUS.ERROR) {
+                /*Future<Boolean> result =*/
+                sendEvent(new DetectObjectsEvent(detection));
+                sendEvent(new StatUpdateEvent(camera.getName(), detection));
+            }
+            if (camera.getStatus() != STATUS.UP) {
+                Broadcast b = camera.getStatus() == STATUS.DOWN ? new TerminatedBroadcast(getName()) : new CrashedBroadcast(camera.getName(), detection.getError());
                 sendBroadcast(b);
                 terminate();
             }
         });
+
+        latch.countDown();
     }
 
 

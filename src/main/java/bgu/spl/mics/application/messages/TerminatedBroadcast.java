@@ -9,7 +9,7 @@ public class TerminatedBroadcast implements Broadcast {
         this.senderName = senderName;
     }
 
-    public String getSenderName(){
+    public String getSenderName() {
         return senderName;
     }
 }

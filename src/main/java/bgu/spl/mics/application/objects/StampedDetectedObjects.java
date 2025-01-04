@@ -23,14 +23,17 @@ public class StampedDetectedObjects {
         return detectedObjects;
     }
 
-    public boolean isEmpty() {
-        return detectedObjects.isEmpty();
-    }
-
     public boolean hasError() {
         for (DetectedObject obj : detectedObjects)
             if (obj.getId().equals("ERROR"))
                 return true;
         return false;
+    }
+
+    public String getError(){
+        for (DetectedObject obj : detectedObjects)
+            if (obj.getId().equals("ERROR"))
+                return obj.getDescription();
+        return "";
     }
 }

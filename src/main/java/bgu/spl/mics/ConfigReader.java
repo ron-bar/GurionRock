@@ -23,12 +23,11 @@ public class ConfigReader {
     private int duration;
     private String baseDir;
 
-    private ConfigReader() {
-    }
-
     private static class ConfigReaderHolder {
         private static final ConfigReader instance = new ConfigReader();
     }
+
+    private ConfigReader() {}
 
     public static ConfigReader getInstance() {
         return ConfigReaderHolder.instance;
@@ -40,7 +39,7 @@ public class ConfigReader {
             this.jsonObject = JsonParser.parseReader(reader).getAsJsonObject();
             this.poseDataPath = resolvePath(jsonObject.get("poseJsonFile").getAsString());
             this.cameraDataPath = resolvePath(jsonObject.getAsJsonObject("Cameras").get("camera_datas_path").getAsString());
-            this.lidarDataPath = resolvePath(jsonObject.getAsJsonObject("LidarWorkers").get("lidars_data_path").getAsString());
+            this.lidarDataPath = resolvePath(jsonObject.getAsJsonObject("LiDarWorkers").get("lidars_data_path").getAsString());
             this.tickTime = jsonObject.get("TickTime").getAsInt();
             this.duration = jsonObject.get("Duration").getAsInt();
         } catch (IOException e) {
@@ -49,8 +48,8 @@ public class ConfigReader {
     }
 
     public List<Camera> getCameras() {
-        JsonObject camerasConfig = jsonObject.getAsJsonObject("Cameras");
-        JsonArray camerasArray = camerasConfig.getAsJsonArray("CamerasConfigurations");
+        JsonObject cameraConfig = jsonObject.getAsJsonObject("Cameras");
+        JsonArray camerasArray = cameraConfig.getAsJsonArray("CamerasConfigurations");
         List<Camera> cameras = new ArrayList<>();
 
         for (int i = 0; i < camerasArray.size(); i++) {
@@ -71,16 +70,33 @@ public class ConfigReader {
             JsonObject cameraDataJson = JsonParser.parseReader(reader).getAsJsonObject();
             JsonArray detectedObjectsArray = cameraDataJson.getAsJsonArray(key);
 
-            Type listType = new TypeToken<List<StampedDetectedObjects>>() {}.getType();
+            Type listType = new TypeToken<List<StampedDetectedObjects>>() {
+            }.getType();
             return new Gson().fromJson(detectedObjectsArray, listType);
         } catch (IOException e) {
             throw new RuntimeException("File error");
         }
     }
 
+    public List<LiDarWorkerTracker> getLiDarWorkers() {
+        JsonObject lidarConfig = jsonObject.getAsJsonObject("LiDarWorkers");
+        JsonArray lidarArray = lidarConfig.getAsJsonArray("LidarConfigurations");
+        List<LiDarWorkerTracker> lidars = new ArrayList<>();
+
+        for (int i = 0; i < lidarArray.size(); i++) {
+            JsonObject lidarJson = lidarArray.get(i).getAsJsonObject();
+            int id = lidarJson.get("id").getAsInt();
+            int frequency = lidarJson.get("frequency").getAsInt();
+            lidars.add(new LiDarWorkerTracker(id, frequency));
+        }
+
+        return lidars;
+    }
+
     public List<Pose> getPoses() {
         try (FileReader reader = new FileReader(poseDataPath)) {
-            Type listType = new TypeToken<List<Pose>>() {}.getType();
+            Type listType = new TypeToken<List<Pose>>() {
+            }.getType();
             return new Gson().fromJson(JsonParser.parseReader(reader), listType);
         } catch (IOException e) {
             throw new RuntimeException("File error");
@@ -89,7 +105,8 @@ public class ConfigReader {
 
     public List<StampedCloudPoints> getStampedCloudPoints() {
         try (FileReader reader = new FileReader(lidarDataPath)) {
-            Type listType = new TypeToken<List<StampedCloudPoints>>() {}.getType();
+            Type listType = new TypeToken<List<StampedCloudPoints>>() {
+            }.getType();
             return new Gson().fromJson(reader, listType);
         } catch (IOException e) {
             throw new RuntimeException("File error");

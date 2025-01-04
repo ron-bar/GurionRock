@@ -48,4 +48,8 @@ public class Camera {
     public STATUS getStatus() {
         return status;
     }
+
+    public String getName() {
+        return "Camera" + id;
+    }
 }

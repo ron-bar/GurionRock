@@ -3,11 +3,11 @@ package bgu.spl.mics.application;
 import bgu.spl.mics.ConfigReader;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.objects.*;
-import bgu.spl.mics.application.services.CameraService;
-import bgu.spl.mics.application.services.TimeService;
+import bgu.spl.mics.application.services.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * The main entry point for the GurionRock Pro Max Ultra Over 9000 simulation.
@@ -27,17 +27,29 @@ public class GurionRockRunner {
      */
     public static void main(String[] args) {
         ConfigReader.getInstance().init(args[0]);
-//        for (Camera c : ConfigReader.getInstance().getCameras())
-//            for(StampedDetectedObjects o : c.test())
-//            System.out.println(o.getTime());
+        List<MicroService> msList = new ArrayList<>();
+
+        int latchCount = ConfigReader.getInstance().getCameras().size() + ConfigReader.getInstance().getLiDarWorkers().size() + 3;
+        CountDownLatch latch = new CountDownLatch(latchCount);
+
+        List<Camera> cameraList = ConfigReader.getInstance().getCameras();
+        List<LiDarWorkerTracker> lidarList = ConfigReader.getInstance().getLiDarWorkers();
+        List<Pose> poseList = ConfigReader.getInstance().getPoses();
+
+        cameraList.forEach(camera -> msList.add(new CameraService(camera, latch)));
+        lidarList.forEach(lidar -> msList.add(new LiDarService(lidar, latch)));
 
 
+        msList.add(new PoseService(new GPSIMU(poseList), latch));
+        msList.add(new FusionSlamService(FusionSlam.getInstance(), latch));
+        msList.add(new StatisticsService(latch));
 
-        //for (Camera c : ConfigReader.getInstance().getCameras())
-       //    msList.add(new CameraService(c));
-       //msList.add(new TimeService(ConfigReader.getInstance().getTickTime(), ConfigReader.getInstance().getDuration()));
-        // TODO: Parse configuration file.
-        // TODO: Initialize system components and services.
-        // TODO: Start the simulation.
+        msList.forEach(service -> new Thread(service, service.getName()).start());
+
+        try {
+            latch.await();
+            new Thread(new TimeService(ConfigReader.getInstance().getTickTime(), ConfigReader.getInstance().getDuration()), "TimeService").start();
+        } catch (InterruptedException ignored) {
+        }
     }
 }

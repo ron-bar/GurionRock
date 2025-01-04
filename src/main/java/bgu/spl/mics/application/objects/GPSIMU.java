@@ -21,14 +21,16 @@ public class GPSIMU {
     }
 
     public Pose detect(int tick) {
-        currentTick = tick;
+        if (status != STATUS.UP)
+            return null;
+        this.currentTick = tick;
         int index = Collections.binarySearch(poseList, new Pose(tick, 0, 0, 0), Comparator.comparingInt(Pose::getTime));
         if (tick >= finalTick)
             this.status = STATUS.DOWN;
         return index >= 0 ? poseList.get(index) : null;
     }
 
-    public STATUS getStatus(){
+    public STATUS getStatus() {
         return status;
     }
 }

@@ -116,7 +116,6 @@ public class MessageBusImpl implements MessageBus {
         LinkedBlockingQueue<Message> queue = msgQueues.get(m);
         if (queue == null)
             throw new IllegalStateException("MicroService is not registered");
-
         return queue.take();
     }
 

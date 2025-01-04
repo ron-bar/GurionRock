@@ -1,7 +1,5 @@
 package bgu.spl.mics;
 
-import bgu.spl.mics.application.messages.TerminatedBroadcast;
-
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -106,7 +104,6 @@ public abstract class MicroService implements Runnable {
     protected final <T> Future<T> sendEvent(Event<T> e) {
         if (e == null)
             return null;
-        // will return null if no micro-service is subscribed to this event
         return MessageBusImpl.getInstance().sendEvent(e);
     }
 
@@ -149,8 +146,8 @@ public abstract class MicroService implements Runnable {
      */
     protected final void terminate() {
         this.terminated = true;
-        sendBroadcast(new TerminatedBroadcast(getName()));
         MessageBusImpl.getInstance().unregister(this);
+        ServiceCounter.unregisterService();
     }
 
     /**
@@ -167,6 +164,7 @@ public abstract class MicroService implements Runnable {
      */
     @Override
     public final void run() {
+        ServiceCounter.registerService();
         initialize();
         try {
             while (!terminated) {
@@ -177,7 +175,7 @@ public abstract class MicroService implements Runnable {
                     callback.call(m);
             }
         } catch (InterruptedException e) {
-            terminate();
+            //terminate();
         }
     }
 

@@ -1,6 +1,3 @@
-TimeService: does it need to subscribe to any messages? inner thread in initialize?
 MessageBus: check if properly synchronized
-CameraService: handle future, callbacks to broadcasts
-ConfigReader: verify path works, consider removing singleton
-MicroService: remove broadcast from terminate()
-if a microservice crashed, do others send a broadcast (terminated,crashed)?
+UnitTest
+TimeService: change tick to seconds
