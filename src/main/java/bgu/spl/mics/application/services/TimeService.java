@@ -63,7 +63,7 @@ public class TimeService extends MicroService {
                     currentTick.incrementAndGet();
                     sendBroadcast(new TickBroadcast(currentTick.get()));
                     System.out.println("Tick: " + currentTick); // DEBUG
-                    Thread.sleep(tickTime * 1000L);
+                    Thread.sleep(tickTime * 250L);
                 }
                 if (!crashed.get())
                     sendBroadcast(new TerminatedBroadcast(this.getName()));

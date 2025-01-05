@@ -62,7 +62,7 @@ public class StatisticalFolder {
     }
 
     public void generateOutput(String faultySensor, String errorDescription) {
-        String fileName = "output_file.json";
+        String fileName = "my.json";
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         JsonElement outputJson;
 

@@ -64,7 +64,6 @@ public class MessageBusImpl implements MessageBus {
         }
     }
 
-
     @Override
     public <T> Future<T> sendEvent(Event<T> e) {
         // finding the subscriber list for this event type
@@ -123,5 +122,19 @@ public class MessageBusImpl implements MessageBus {
         return MessageBusImplHolder.instance;
     }
 
+    // queries for testing
+    @Override
+    public boolean isMicroServiceRegistered(MicroService m) {
+        return msgQueues.containsKey(m);
+    }
 
+    @Override
+    public int getMicroServiceCounter() {
+        return msgQueues.size();
+    }
+
+    @Override
+    public boolean isSubscribedToBroadcast(MicroService m) {
+        return broadcastSubs.values().stream().anyMatch(subscriberList -> subscriberList.contains(m));
+    }
 }
