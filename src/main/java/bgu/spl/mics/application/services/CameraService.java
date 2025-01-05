@@ -52,12 +52,11 @@ public class CameraService extends MicroService {
             StampedDetectedObjects detection = camera.detect(tickBroadcast.getCurrentTick());
             if (detection != null && camera.getStatus() != STATUS.ERROR) {
                 /*Future<Boolean> result =*/
-                sendEvent(new DetectObjectsEvent(detection));
                 sendEvent(new StatUpdateEvent(camera.getName(), detection));
+                sendEvent(new DetectObjectsEvent(detection));
             }
             if (camera.getStatus() != STATUS.UP) {
                 Broadcast b = camera.getStatus() == STATUS.DOWN ? new TerminatedBroadcast(getName()) : new CrashedBroadcast(camera.getName(), detection.getError());
-                System.out.println("camera done"); //debug
                 sendBroadcast(b);
                 terminate();
             }

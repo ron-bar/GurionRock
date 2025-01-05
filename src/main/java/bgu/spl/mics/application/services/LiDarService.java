@@ -87,7 +87,6 @@ public class LiDarService extends MicroService {
                 b = new CrashedBroadcast(lidarWorkerTracker.getName(), "Sensor disconnected");
             else
                 b = new TerminatedBroadcast(getName());
-            System.out.println("lidar done"); // debug
             sendBroadcast(b);
             terminate();
         }
@@ -102,9 +101,8 @@ public class LiDarService extends MicroService {
             return;
         }
 
-        TrackedObjectsEvent trackedEvent = new TrackedObjectsEvent(detection);
-        sendEvent(trackedEvent);
         sendEvent(new StatUpdateEvent(lidarWorkerTracker.getName(), detection));
+        sendEvent(new TrackedObjectsEvent(detection));
         complete(event, true);
     }
 

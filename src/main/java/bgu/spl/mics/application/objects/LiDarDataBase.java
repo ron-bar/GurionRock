@@ -3,7 +3,7 @@ package bgu.spl.mics.application.objects;
 import bgu.spl.mics.ConfigReader;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * LiDarDataBase is a singleton class responsible for managing LiDAR data.
@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class LiDarDataBase {
     private final List<StampedCloudPoints> cloudPoints;
-    AtomicBoolean isFinished;
+    private final AtomicInteger operationCounter;
 
     private static class LiDarDataBaseHolder {
         private static final LiDarDataBase instance = new LiDarDataBase();
@@ -19,14 +19,13 @@ public class LiDarDataBase {
 
     private LiDarDataBase() {
         cloudPoints = Collections.unmodifiableList(ConfigReader.getInstance().getStampedCloudPoints());
-        isFinished = new AtomicBoolean(false);
+        operationCounter = new AtomicInteger(0);
     }
 
     public StampedCloudPoints getStampedCloudPoints(String id, int time) {
         for (StampedCloudPoints point : cloudPoints)
             if (point.getTime() == time && point.getId().equals(id)) {
-                if (point.equals(cloudPoints.get(cloudPoints.size() - 1)))
-                    isFinished.set(true);
+                operationCounter.incrementAndGet();
                 return point;
             }
         return null;
@@ -40,7 +39,7 @@ public class LiDarDataBase {
     }
 
     public boolean isFinished() {
-        return isFinished.get();
+        return operationCounter.get() == cloudPoints.size();
     }
 
     /**

@@ -1,6 +1,7 @@
 package bgu.spl.mics.application.objects;
 
 import com.google.gson.*;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ public class StatisticalFolder {
     private Map<String, LandMark> landMarks;
 
     private final transient HashMap<String, StampedDetectedObjects> lastCameraFrames;
-    private final transient HashMap<String, List<DetectedObject>> lastLidarFrames;
+    private final transient HashMap<String, List<TrackedObject>> lastLidarFrames;
     private final transient List<Pose> poseHistory;
 
     public StatisticalFolder() {
@@ -43,15 +44,15 @@ public class StatisticalFolder {
     }
 
     public void updateStats(String sensorName, Object obj) {
-        if(obj instanceof Pose)
-            poseHistory.add((Pose)obj);
+        if (obj instanceof Pose)
+            poseHistory.add((Pose) obj);
         else if (obj instanceof StampedDetectedObjects) {
             StampedDetectedObjects cameraFrame = (StampedDetectedObjects) obj;
             lastCameraFrames.put(sensorName, cameraFrame);
             numDetectedObjects += cameraFrame.getDetectedObjects().size();
         } else {
             @SuppressWarnings("unchecked")
-            List<DetectedObject> lidarFrame = (List<DetectedObject>) obj;
+            List<TrackedObject> lidarFrame = (List<TrackedObject>) obj;
             lastLidarFrames.put(sensorName, lidarFrame);
             numTrackedObjects += lidarFrame.size();
         }

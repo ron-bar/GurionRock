@@ -87,7 +87,6 @@ public class MessageBusImpl implements MessageBus {
         queue.add(e);
         eventFutures.put(e, future);
         return future;
-
     }
 
     @Override

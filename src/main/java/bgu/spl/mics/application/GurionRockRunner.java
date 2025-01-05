@@ -27,8 +27,8 @@ public class GurionRockRunner {
      */
     public static void main(String[] args) {
         ConfigReader.getInstance().init(args[0]);
-        List<MicroService> msList = new ArrayList<>();
 
+        List<MicroService> msList = new ArrayList<>();
         int latchCount = ConfigReader.getInstance().getCameras().size() + ConfigReader.getInstance().getLiDarWorkers().size() + 3;
         CountDownLatch latch = new CountDownLatch(latchCount);
 

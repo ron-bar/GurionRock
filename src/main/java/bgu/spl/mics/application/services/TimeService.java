@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TimeService extends MicroService {
     private final int tickTime;
     private final int duration;
+    private final long tickMultiplier = 1000L;
     private final AtomicInteger currentTick;
     private final AtomicBoolean crashed;
 
@@ -63,11 +64,11 @@ public class TimeService extends MicroService {
                     currentTick.incrementAndGet();
                     sendBroadcast(new TickBroadcast(currentTick.get()));
                     System.out.println("Tick: " + currentTick); // DEBUG
-                    Thread.sleep(tickTime * 250L);
+                    Thread.sleep(tickTime * tickMultiplier);
                 }
                 if (!crashed.get())
                     sendBroadcast(new TerminatedBroadcast(this.getName()));
-            } catch (InterruptedException e) {
+            } catch (InterruptedException ignored) {
 
             }
         }).start();
