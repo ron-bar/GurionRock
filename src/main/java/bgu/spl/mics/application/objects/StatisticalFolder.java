@@ -1,7 +1,9 @@
 package bgu.spl.mics.application.objects;
 
+import bgu.spl.mics.ConfigReader;
 import com.google.gson.*;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -63,7 +65,11 @@ public class StatisticalFolder {
     }
 
     public void generateOutput(String faultySensor, String errorDescription) {
-        String fileName = "my.json";
+        String fileName = "output_file.json";
+        String folderPath = ConfigReader.getInstance().getTargetFolder();
+
+        File outputFile = new File(folderPath, fileName);
+
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         JsonElement outputJson;
 
@@ -81,7 +87,7 @@ public class StatisticalFolder {
         } else
             outputJson = gson.toJsonTree(this);
 
-        try (FileWriter writer = new FileWriter(fileName)) {
+        try (FileWriter writer = new FileWriter(outputFile)) {
             gson.toJson(outputJson, writer);
         } catch (IOException e) {
             System.err.println("File writing error");

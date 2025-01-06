@@ -119,7 +119,7 @@ public interface MessageBus {
     // for tests
     boolean isMicroServiceRegistered(MicroService m);
 
-    boolean isSubscribedToBroadcast(MicroService m);
+    boolean isSubscribedToBroadcast(Class<? extends Broadcast> type, MicroService m);
 
     int getMicroServiceCounter();
 }

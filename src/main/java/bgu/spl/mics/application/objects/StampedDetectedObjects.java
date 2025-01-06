@@ -25,14 +25,14 @@ public class StampedDetectedObjects {
 
     public boolean hasError() {
         for (DetectedObject obj : detectedObjects)
-            if (obj.getId().equals("ERROR"))
+            if (obj.getId().equalsIgnoreCase("ERROR"))
                 return true;
         return false;
     }
 
     public String getError(){
         for (DetectedObject obj : detectedObjects)
-            if (obj.getId().equals("ERROR"))
+            if (obj.getId().equalsIgnoreCase("ERROR"))
                 return obj.getDescription();
         return "";
     }

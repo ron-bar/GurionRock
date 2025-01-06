@@ -133,7 +133,8 @@ public class MessageBusImpl implements MessageBus {
     }
 
     @Override
-    public boolean isSubscribedToBroadcast(MicroService m) {
-        return broadcastSubs.values().stream().anyMatch(subscriberList -> subscriberList.contains(m));
+    public boolean isSubscribedToBroadcast(Class<? extends Broadcast> type, MicroService m) {
+        ConcurrentLinkedQueue<MicroService> subscribers = broadcastSubs.get(type);
+        return subscribers != null && subscribers.contains(m);
     }
 }

@@ -34,10 +34,10 @@ public class Camera {
             return null;
         StampedDetectedObjects obj = detectedObjectsList.get(index);
         detectionCounter++;
-        if (obj.hasError())
-            this.status = STATUS.ERROR;
         if (isFinished())
             this.status = STATUS.DOWN;
+        if (obj.hasError())
+            this.status = STATUS.ERROR;
         return obj;
     }
 

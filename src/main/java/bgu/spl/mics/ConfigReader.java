@@ -69,7 +69,6 @@ public class ConfigReader {
         try (FileReader reader = new FileReader(dataPath)) {
             JsonObject cameraDataJson = JsonParser.parseReader(reader).getAsJsonObject();
             JsonArray detectedObjectsArray = cameraDataJson.getAsJsonArray(key);
-
             Type listType = new TypeToken<List<StampedDetectedObjects>>() {
             }.getType();
             return new Gson().fromJson(detectedObjectsArray, listType);
@@ -123,5 +122,9 @@ public class ConfigReader {
 
     public int getDuration() {
         return duration;
+    }
+
+    public String getTargetFolder(){
+        return baseDir;
     }
 }
